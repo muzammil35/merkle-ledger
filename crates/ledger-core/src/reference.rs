@@ -17,17 +17,13 @@ use crate::{Hash, empty_root, node_hash, split_point};
 #[must_use]
 pub fn root(leaves: &[Hash]) -> Hash {
     match leaves.len() {
-        0 => {
-            empty_root()
-        },
-        1 =>{
-            leaves[0]
-        },
+        0 => empty_root(),
+        1 => leaves[0],
         n => {
             let k = split_point(n as u64) as usize;
             let left_root = root(&leaves[..k]);
             let right_root = root(&leaves[k..]);
-            node_hash(&left_root, &right_root)            
+            node_hash(&left_root, &right_root)
         }
     }
 }
@@ -38,7 +34,30 @@ pub fn root(leaves: &[Hash]) -> Hash {
 /// Panics if `index >= leaves.len()`.
 #[must_use]
 pub fn inclusion_path(leaves: &[Hash], index: usize) -> Vec<Hash> {
-    todo!("Task 1: PATH")
+    assert!(index < leaves.len(), "index {index} out of range");
+    let mut path = Vec::new();
+    match leaves.len() {
+        0 => path,
+        1 => path,
+        mut n => {
+            let mut i = index;
+            let mut cur = leaves;
+            while n > 1 {
+                let k = split_point(n as u64) as usize;
+                if i < k {
+                    path.push(root(&cur[k..]));
+                    cur = &cur[..k];
+                    n = cur.len();
+                } else {
+                    path.push(root(&cur[..k]));
+                    cur = &cur[k..];
+                    n = cur.len();
+                    i -= k;
+                }
+            }
+            path
+        }
+    }
 }
 
 /// `PROOF(m, D[n])`: proves the first `old_size` leaves are a prefix of `leaves`.
